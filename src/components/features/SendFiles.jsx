@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Share2, Lock, Clock, Download, Send, Copy, Check, RefreshCw, Link } from 'lucide-react';
+import { Share2, Lock, Clock, Download, Send, Copy, Check, RefreshCw, Link as LinkIcon } from 'lucide-react';
 import { DropZone, FileItem, ProgressBar } from '../ui';
 import { uploadFiles, createShare, generateShareCode } from '../../services/shareService';
 
@@ -224,7 +224,7 @@ export const SendFiles = ({ onError, onSuccess }) => {
           {/* Share Link */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Link className="w-4 h-4 inline mr-1" />
+              <LinkIcon className="w-4 h-4 inline mr-1" />
               Share Link
             </label>
             <div className="flex items-center gap-3 bg-white p-3 rounded-lg shadow-sm">
