@@ -335,6 +335,12 @@ body {
   overflow: hidden;
 }
 
+/* Ensure sidebar ads have proper dimensions */
+aside .adsbygoogle {
+  min-width: 250px;
+  max-width: 300px;
+}
+
 /* Placeholder for empty ads */
 .adsbygoogle:empty {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
