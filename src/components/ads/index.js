@@ -2,7 +2,5 @@ export {
   AdBanner, 
   AdBannerHorizontal, 
   AdBannerSquare, 
-  AdBannerVertical,
-  AdBannerInFeed,
-  AdBannerInArticle 
+  AdBannerVertical 
 } from './AdBanner';

@@ -330,33 +330,39 @@ body {
 /* Ad Styles */
 .ad-container {
   width: 100%;
-  overflow: hidden;
 }
 
 .adsbygoogle {
   display: block;
   width: 100%;
+  height: auto;
   min-height: 90px;
 }
 
-/* Empty ad placeholder */
-.adsbygoogle[data-ad-status="unfilled"],
-.adsbygoogle:empty {
-  min-height: 90px;
+/* Sidebar ads need fixed width */
+aside .adsbygoogle {
+  min-height: 250px;
+}
+
+/* Placeholder for empty ads */
+.adsbygoogle:empty,
+.adsbygoogle[data-ad-status="unfilled"] {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
 }
 
-.adsbygoogle[data-ad-status="unfilled"]::after,
-.adsbygoogle:empty::after {
-  content: "Advertisement";
+.adsbygoogle:empty::after,
+.adsbygoogle[data-ad-status="unfilled"]::after {
+  content: "Ad";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   font-size: 11px;
   color: #94a3b8;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
 }
 
 @media (max-width: 640px) {
