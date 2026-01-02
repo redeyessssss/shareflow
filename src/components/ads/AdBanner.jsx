@@ -1,89 +1,59 @@
-import { useEffect, useRef, memo, useState } from 'react';
+import { useEffect, useRef, memo } from 'react';
 
-// Generate unique ID for each ad instance
-let adCounter = 0;
-const getAdId = () => `ad-${++adCounter}`;
-
-// Core Ad Unit with proper initialization
-const AdUnit = memo(({ slot = "1650043805", minHeight = 100 }) => {
-  const containerRef = useRef(null);
-  const adId = useRef(getAdId());
-  const [adPushed, setAdPushed] = useState(false);
+// Simple Ad Unit - loads when mounted
+const AdUnit = memo(({ slot = "1650043805", style = {} }) => {
+  const adRef = useRef(null);
+  const initialized = useRef(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || adPushed) return;
+    if (typeof window === 'undefined') return;
+    if (initialized.current) return;
 
-    let timeoutId;
-    let observer;
-
-    const pushAd = () => {
-      if (!containerRef.current) return;
-      
-      const container = containerRef.current;
-      const width = container.offsetWidth;
-      const ins = container.querySelector('.adsbygoogle');
-      
-      // Only push if container has width and ad not already pushed
-      if (width > 100 && ins && !ins.dataset.adsbygoogleStatus) {
-        try {
+    // Wait for DOM to be ready and container to have width
+    const timer = setTimeout(() => {
+      try {
+        const container = adRef.current?.parentElement;
+        if (container && container.offsetWidth > 0) {
           (window.adsbygoogle = window.adsbygoogle || []).push({});
-          setAdPushed(true);
-        } catch (e) {
-          // Silent fail for localhost
+          initialized.current = true;
         }
+      } catch (e) {
+        // Silent fail
       }
-    };
+    }, 1000);
 
-    // Use Intersection Observer to load ads when visible
-    observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          timeoutId = setTimeout(pushAd, 500);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '200px', threshold: 0 }
-    );
-
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      if (observer) observer.disconnect();
-    };
-  }, [adPushed]);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <div 
-      ref={containerRef} 
-      id={adId.current}
-      style={{ width: '100%', minHeight: `${minHeight}px` }}
-    >
-      <ins
-        className="adsbygoogle"
-        style={{ display: 'block', width: '100%', height: 'auto', minHeight: `${minHeight}px` }}
-        data-ad-client="ca-pub-8746222528910149"
-        data-ad-slot={slot}
-        data-ad-format="auto"
-        data-full-width-responsive="true"
-      />
-    </div>
+    <ins
+      ref={adRef}
+      className="adsbygoogle"
+      style={{ 
+        display: 'block', 
+        width: '100%',
+        minHeight: style.minHeight || '90px',
+        ...style 
+      }}
+      data-ad-client="ca-pub-8746222528910149"
+      data-ad-slot={slot}
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    />
   );
 });
 
 AdUnit.displayName = 'AdUnit';
 
-// Horizontal Ad Banner - for content areas
+// Horizontal Ad
 export const AdBannerHorizontal = memo(({ className = "" }) => (
   <div className={`w-full my-4 ${className}`}>
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-slate-100 flex items-center justify-center">
-        <span className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Sponsored</span>
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+      <div className="px-3 py-2 border-b border-slate-100 bg-slate-50 text-center">
+        <span className="text-[10px] text-slate-400 uppercase tracking-wider">Sponsored</span>
       </div>
-      <div className="p-3">
-        <AdUnit slot="1650043805" minHeight={90} />
+      <div className="p-3" style={{ minHeight: '100px' }}>
+        <AdUnit slot="1650043805" style={{ minHeight: '90px' }} />
       </div>
     </div>
   </div>
@@ -91,15 +61,15 @@ export const AdBannerHorizontal = memo(({ className = "" }) => (
 
 AdBannerHorizontal.displayName = 'AdBannerHorizontal';
 
-// Vertical Sidebar Ad Banner
+// Vertical Sidebar Ad
 export const AdBannerVertical = memo(({ className = "" }) => (
-  <div className={`w-full ${className}`}>
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-slate-100 text-center">
-        <span className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Advertisement</span>
+  <div className={`${className}`} style={{ width: '100%', minWidth: '250px' }}>
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+      <div className="px-3 py-2 border-b border-slate-100 bg-slate-50 text-center">
+        <span className="text-[10px] text-slate-400 uppercase tracking-wider">Advertisement</span>
       </div>
-      <div className="p-3">
-        <AdUnit slot="1650043805" minHeight={500} />
+      <div className="p-3" style={{ minHeight: '500px', width: '100%' }}>
+        <AdUnit slot="1650043805" style={{ minHeight: '480px' }} />
       </div>
     </div>
   </div>
@@ -107,15 +77,15 @@ export const AdBannerVertical = memo(({ className = "" }) => (
 
 AdBannerVertical.displayName = 'AdBannerVertical';
 
-// Square Ad Banner
+// Square Ad
 export const AdBannerSquare = memo(({ className = "" }) => (
   <div className={`w-full ${className}`}>
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-slate-100 text-center">
-        <span className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Ad</span>
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+      <div className="px-3 py-2 border-b border-slate-100 bg-slate-50 text-center">
+        <span className="text-[10px] text-slate-400 uppercase tracking-wider">Ad</span>
       </div>
-      <div className="p-3">
-        <AdUnit slot="1650043805" minHeight={250} />
+      <div className="p-3" style={{ minHeight: '250px' }}>
+        <AdUnit slot="1650043805" style={{ minHeight: '230px' }} />
       </div>
     </div>
   </div>

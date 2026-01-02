@@ -335,30 +335,23 @@ body {
   overflow: hidden;
 }
 
-/* Placeholder styling for empty ads */
+/* Placeholder for empty ads */
 .adsbygoogle:empty {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   position: relative;
 }
 
 .adsbygoogle:empty::after {
   content: "Ad";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   font-size: 11px;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 2px;
-  font-weight: 500;
-}
-
-/* Mobile ad adjustments */
-@media (max-width: 640px) {
-  .adsbygoogle {
-    min-height: 50px !important;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
