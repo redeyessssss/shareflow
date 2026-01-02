@@ -143,7 +143,7 @@ export const SendFiles = memo(({ onError, onSuccess }) => {
           <div className="mb-6 animate-fadeInUp" style={{ animationDelay: '100ms' }}>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Share Code</label>
             <div className="flex items-center gap-3 bg-white p-4 rounded-2xl shadow-lg hover-glow border border-indigo-100">
-              <code className="flex-1 text-3xl font-black gradient-text-animated text-center tracking-[0.4em] font-mono">{generatedCode}</code>
+              <code className="flex-1 text-3xl font-black text-center tracking-[0.4em] font-mono bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">{generatedCode}</code>
               <button onClick={() => copyToClipboard(generatedCode, 'code')} className={`p-4 rounded-xl transition-all duration-300 shadow-lg ${copiedCode ? 'bg-emerald-500' : 'btn-copy'} text-white`}>
                 {copiedCode ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
               </button>

@@ -5,7 +5,7 @@ export const ProgressBar = memo(({ progress, label = "Uploading..." }) => {
     <div className="mt-8 animate-fadeInUp gpu">
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-semibold text-slate-600">{label}</span>
-        <span className="text-sm font-bold gradient-text">{progress}%</span>
+        <span className="text-sm font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{progress}%</span>
       </div>
       <div className="w-full bg-indigo-100 rounded-full h-3 overflow-hidden shadow-inner">
         <div 

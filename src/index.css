@@ -286,12 +286,13 @@ body {
   box-shadow: 0 25px 50px -15px rgba(99, 102, 241, 0.25);
 }
 
-/* Gradient Text */
+/* Gradient Text - Fixed for all browsers */
 .gradient-text {
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 30%, #a855f7 60%, #ec4899 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  color: transparent;
 }
 
 .gradient-text-animated {
@@ -300,6 +301,7 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  color: transparent;
   animation: gradient 4s ease infinite;
 }
 
@@ -326,24 +328,45 @@ body {
 }
 
 /* Ad Styles */
-.ad-section {
+.ad-container {
   transition: all 0.3s ease;
-  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+  overflow: hidden;
 }
 
-.adsbygoogle { display: block; width: 100%; }
-.adsbygoogle:empty::before {
-  content: "";
-  display: block;
-  background: linear-gradient(90deg, #f8fafc 25%, #f1f5f9 50%, #f8fafc 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 8px;
+.ad-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.adsbygoogle { 
+  display: block; 
+  width: 100% !important;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.adsbygoogle:empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+  border-radius: 12px;
   min-height: inherit;
 }
 
+.adsbygoogle:empty::before {
+  content: "Ad";
+  font-size: 12px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 500;
+}
+
 @media (max-width: 640px) {
-  .ad-section {
+  .ad-container {
     margin-left: -1rem;
     margin-right: -1rem;
     border-radius: 0;
