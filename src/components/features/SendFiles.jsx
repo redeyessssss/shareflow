@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Share2, Lock, Clock, Download, Send, Copy, Check, RefreshCw } from 'lucide-react';
+import { Share2, Lock, Clock, Download, Send, Copy, Check, RefreshCw, Link } from 'lucide-react';
 import { DropZone, FileItem, ProgressBar } from '../ui';
 import { uploadFiles, createShare, generateShareCode } from '../../services/shareService';
 
@@ -10,9 +10,12 @@ export const SendFiles = ({ onError, onSuccess }) => {
   const [password, setPassword] = useState('');
   const [maxDownloads, setMaxDownloads] = useState('unlimited');
   const [message, setMessage] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  const getShareLink = () => `${window.location.origin}?code=${generatedCode}`;
 
   useEffect(() => {
     return () => {
@@ -73,20 +76,30 @@ export const SendFiles = ({ onError, onSuccess }) => {
     }
   };
 
-  const copyToClipboard = async () => {
+  const copyToClipboard = async (text, type) => {
     try {
-      await navigator.clipboard.writeText(generatedCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(text);
+      if (type === 'code') {
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2000);
+      } else {
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2000);
+      }
     } catch {
       const textArea = document.createElement('textarea');
-      textArea.value = generatedCode;
+      textArea.value = text;
       document.body.appendChild(textArea);
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (type === 'code') {
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2000);
+      } else {
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2000);
+      }
     }
   };
 
@@ -189,19 +202,49 @@ export const SendFiles = ({ onError, onSuccess }) => {
 
       {generatedCode && (
         <div className="mt-6 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200">
-          <h3 className="font-semibold text-gray-800 mb-4 text-center">✅ Files Uploaded! Share this code:</h3>
-          <div className="flex items-center gap-3 bg-white p-4 rounded-lg shadow-sm">
-            <code className="flex-1 text-3xl font-bold text-indigo-600 text-center tracking-wider">
-              {generatedCode}
-            </code>
-            <button
-              onClick={copyToClipboard}
-              className="p-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-              title={copied ? 'Copied!' : 'Copy to clipboard'}
-            >
-              {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-            </button>
+          <h3 className="font-semibold text-gray-800 mb-4 text-center">✅ Files Uploaded!</h3>
+          
+          {/* Share Code */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Share Code</label>
+            <div className="flex items-center gap-3 bg-white p-4 rounded-lg shadow-sm">
+              <code className="flex-1 text-3xl font-bold text-indigo-600 text-center tracking-wider">
+                {generatedCode}
+              </code>
+              <button
+                onClick={() => copyToClipboard(generatedCode, 'code')}
+                className="p-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                title={copiedCode ? 'Copied!' : 'Copy code'}
+              >
+                {copiedCode ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
+
+          {/* Share Link */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Link className="w-4 h-4 inline mr-1" />
+              Share Link
+            </label>
+            <div className="flex items-center gap-3 bg-white p-3 rounded-lg shadow-sm">
+              <input
+                type="text"
+                readOnly
+                value={getShareLink()}
+                className="flex-1 text-sm text-gray-600 bg-transparent outline-none truncate"
+              />
+              <button
+                onClick={() => copyToClipboard(getShareLink(), 'link')}
+                className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                title={copiedLink ? 'Copied!' : 'Copy link'}
+              >
+                {copiedLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                <span className="text-sm">{copiedLink ? 'Copied!' : 'Copy Link'}</span>
+              </button>
+            </div>
+          </div>
+
           <div className="mt-4 space-y-2 text-sm text-gray-600">
             <p>✓ Expires in: {expiryTime}</p>
             <p>✓ Max downloads: {maxDownloads}</p>

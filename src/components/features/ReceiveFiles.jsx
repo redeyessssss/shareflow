@@ -1,15 +1,22 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Download, Loader, RefreshCw } from 'lucide-react';
 import { FileItem } from '../ui';
 import { fetchShare, incrementDownloadCount } from '../../services/shareService';
 import { getFileIcon, formatFileSize } from '../../utils/fileHelpers.jsx';
 
-export const ReceiveFiles = ({ onError, onSuccess }) => {
-  const [shareCode, setShareCode] = useState('');
+export const ReceiveFiles = ({ onError, onSuccess, initialCode = '' }) => {
+  const [shareCode, setShareCode] = useState(initialCode);
   const [downloadPassword, setDownloadPassword] = useState('');
   const [downloadedFiles, setDownloadedFiles] = useState([]);
   const [senderMessage, setSenderMessage] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Auto-fetch if initialCode is provided
+  useEffect(() => {
+    if (initialCode && initialCode.length === 6) {
+      setShareCode(initialCode);
+    }
+  }, [initialCode]);
 
   const handleReceive = async () => {
     if (shareCode.length !== 6) {

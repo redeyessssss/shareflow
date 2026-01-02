@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header, ModeToggle, FeatureCards } from './components/layout';
 import { Notification } from './components/ui';
 import { SendFiles, ReceiveFiles } from './components/features';
@@ -6,7 +6,20 @@ import { useNotification } from './hooks/useNotification';
 
 export default function FileShareApp() {
   const [mode, setMode] = useState('send');
+  const [initialCode, setInitialCode] = useState('');
   const { error, setError, success, setSuccess, clearNotifications } = useNotification();
+
+  // Check URL for share code on load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) {
+      setInitialCode(code.toUpperCase());
+      setMode('receive');
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   const handleModeChange = (newMode) => {
     setMode(newMode);
@@ -24,7 +37,7 @@ export default function FileShareApp() {
           {mode === 'send' ? (
             <SendFiles onError={setError} onSuccess={setSuccess} />
           ) : (
-            <ReceiveFiles onError={setError} onSuccess={setSuccess} />
+            <ReceiveFiles onError={setError} onSuccess={setSuccess} initialCode={initialCode} />
           )}
         </div>
 
