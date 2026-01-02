@@ -167,11 +167,6 @@ export default function FileShareApp() {
         </div>
       </section>
 
-      {/* Ad after How It Works */}
-      <div className="max-w-4xl mx-auto px-4">
-        <AdBannerHorizontal />
-      </div>
-
       {/* Footer */}
       <footer className="bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-950 text-white py-12 px-4 mt-8">
         <div className="max-w-4xl mx-auto">
