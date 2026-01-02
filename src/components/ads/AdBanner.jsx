@@ -1,15 +1,16 @@
 import { useEffect, useRef, memo, useState } from 'react';
 
-// Ad Unit with visibility detection
+// Ad Unit with single initialization
 let adCounter = 0;
 
 const AdUnit = memo(({ slot = "1650043805", format = "auto", width = "100%", height = "90px" }) => {
   const adRef = useRef(null);
   const [adId] = useState(() => `ad-${++adCounter}`);
-  const [status, setStatus] = useState('waiting'); // waiting, loading, success, failed
+  const [initialized, setInitialized] = useState(false);
+  const initAttempted = useRef(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || initialized || initAttempted.current) return;
 
     const adElement = adRef.current;
     if (!adElement) return;
@@ -18,23 +19,30 @@ const AdUnit = memo(({ slot = "1650043805", format = "auto", width = "100%", hei
     let observerCleanup = null;
 
     const initAd = () => {
-      if (status !== 'loading') return;
+      if (initAttempted.current || initialized) return;
+      
+      const rect = adElement.getBoundingClientRect();
+      const style = window.getComputedStyle(adElement);
+      const isVisible = style.display !== 'none' && style.visibility !== 'hidden' && rect.width >= 300;
+
+      if (!isVisible) return;
+
+      initAttempted.current = true;
       
       try {
         if (adElement.dataset.adsbygoogleStatus === 'done') {
-          console.log(`[${adId}] Already done`);
-          setStatus('success');
+          console.log(`[${adId}] Already initialized`);
+          setInitialized(true);
           return;
         }
         
-        const rect = adElement.getBoundingClientRect();
-        console.log(`[${adId}] Initializing at ${Math.floor(rect.width)}px`);
-        
+        console.log(`[${adId}] Initializing at ${Math.floor(rect.width)}x${Math.floor(rect.height)}`);
         (window.adsbygoogle = window.adsbygoogle || []).push({});
-        setStatus('success');
+        setInitialized(true);
+        console.log(`[${adId}] Success`);
       } catch (e) {
         console.error(`[${adId}] Error:`, e.message);
-        setStatus('failed');
+        initAttempted.current = false; // Allow retry on error
       }
     };
 
@@ -42,82 +50,33 @@ const AdUnit = memo(({ slot = "1650043805", format = "auto", width = "100%", hei
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio > 0) {
+          if (entry.isIntersecting && entry.intersectionRatio > 0 && !initAttempted.current) {
             const rect = entry.boundingClientRect;
-            console.log(`[${adId}] Visible: ${Math.floor(rect.width)}x${Math.floor(rect.height)}`);
-            
-            if (rect.width >= 300 && status === 'waiting') {
-              setStatus('loading');
-              // Small delay to ensure DOM is ready
+            if (rect.width >= 300) {
               timeoutId = setTimeout(initAd, 100);
             }
           }
         });
       },
-      { threshold: 0.1 }
+      { threshold: 0.01 }
     );
 
     observer.observe(adElement);
     observerCleanup = () => observer.disconnect();
 
-    // Fallback: check after delays if observer doesn't trigger
-    const fallbackCheck = () => {
-      if (status !== 'waiting') return;
-      
-      const rect = adElement.getBoundingClientRect();
-      const style = window.getComputedStyle(adElement);
-      const isVisible = style.display !== 'none' && style.visibility !== 'hidden';
-      
-      if (isVisible && rect.width >= 300) {
-        console.log(`[${adId}] Fallback init at ${Math.floor(rect.width)}px`);
-        setStatus('loading');
-        timeoutId = setTimeout(initAd, 100);
+    // Fallback: try once after delay if observer doesn't trigger
+    const fallbackTimer = setTimeout(() => {
+      if (!initAttempted.current) {
+        initAd();
       }
-    };
-
-    const fallbackTimers = [
-      setTimeout(fallbackCheck, 1000),
-      setTimeout(fallbackCheck, 2000),
-      setTimeout(fallbackCheck, 4000),
-    ];
+    }, 2000);
 
     return () => {
       if (observerCleanup) observerCleanup();
       if (timeoutId) clearTimeout(timeoutId);
-      fallbackTimers.forEach(clearTimeout);
+      clearTimeout(fallbackTimer);
     };
-  }, [adId, status]);
-
-  // Trigger init when status changes to loading
-  useEffect(() => {
-    if (status === 'loading') {
-      const adElement = adRef.current;
-      if (!adElement) return;
-      
-      try {
-        if (adElement.dataset.adsbygoogleStatus === 'done') {
-          setStatus('success');
-          return;
-        }
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
-        setStatus('success');
-      } catch (e) {
-        console.error(`[${adId}] Init error:`, e.message);
-        setStatus('failed');
-      }
-    }
-  }, [status, adId]);
-
-  if (status === 'failed') {
-    return (
-      <div 
-        className="flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg"
-        style={{ width, height, minHeight: height }}
-      >
-        <span className="text-[10px] text-slate-400 uppercase tracking-wider">Ad</span>
-      </div>
-    );
-  }
+  }, [adId, initialized]);
 
   return (
     <ins
@@ -129,7 +88,7 @@ const AdUnit = memo(({ slot = "1650043805", format = "auto", width = "100%", hei
         minWidth: '300px',
         height: height,
         minHeight: height,
-        backgroundColor: status === 'waiting' ? '#f8fafc' : 'transparent',
+        backgroundColor: initialized ? 'transparent' : '#f8fafc',
       }}
       data-ad-client="ca-pub-8746222528910149"
       data-ad-slot={slot}
