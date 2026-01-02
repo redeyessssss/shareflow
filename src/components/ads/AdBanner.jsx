@@ -1,71 +1,49 @@
 import { useEffect, useRef } from 'react';
 
-const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-export const AdBanner = ({ slot = "1650043805", format = "auto", style = {} }) => {
+export const AdBanner = ({ slot = "1650043805", format = "auto", className = "" }) => {
   const adRef = useRef(null);
-  const isLoaded = useRef(false);
 
   useEffect(() => {
-    if (isDev || isLoaded.current) return;
-    
-    const timer = setTimeout(() => {
-      try {
-        if (window.adsbygoogle && adRef.current) {
-          window.adsbygoogle.push({});
-          isLoaded.current = true;
-        }
-      } catch (e) {
-        console.log('AdSense not available');
+    try {
+      if (window.adsbygoogle) {
+        window.adsbygoogle.push({});
       }
-    }, 100);
-
-    return () => clearTimeout(timer);
+    } catch (e) {
+      console.error('Ad error:', e);
+    }
   }, []);
 
-  // Show placeholder on localhost
-  if (isDev) {
-    return (
-      <div 
-        className="bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center text-gray-500 text-sm font-medium"
-        style={{ minHeight: style.minHeight || '100px', ...style }}
-      >
-        <div className="text-center p-4">
-          <p className="text-gray-400 text-xs mb-1">Advertisement</p>
-          <p>Ad will appear here on live site</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div ref={adRef}>
+    <div ref={adRef} className={className}>
       <ins
         className="adsbygoogle"
-        style={{ display: 'block', ...style }}
+        style={{ display: 'block' }}
         data-ad-client="ca-pub-8746222528910149"
         data-ad-slot={slot}
         data-ad-format={format}
         data-full-width-responsive="true"
-      />
+      ></ins>
     </div>
   );
 };
 
 export const AdBannerHorizontal = ({ className = "" }) => (
-  <div className={`bg-gray-100 rounded-lg p-3 my-4 ${className}`}>
-    <AdBanner slot="1650043805" format="horizontal" style={{ minHeight: '90px' }} />
+  <div className={`ad-wrapper bg-gray-50 rounded-lg p-2 my-4 min-h-[100px] ${className}`}>
+    <p className="text-[10px] text-gray-400 text-center mb-1">Advertisement</p>
+    <AdBanner slot="1650043805" format="auto" />
   </div>
 );
 
 export const AdBannerSquare = ({ className = "" }) => (
-  <div className={`bg-gray-100 rounded-lg p-3 ${className}`}>
-    <AdBanner slot="1650043805" format="rectangle" style={{ minHeight: '250px' }} />
+  <div className={`ad-wrapper bg-gray-50 rounded-lg p-2 min-h-[260px] ${className}`}>
+    <p className="text-[10px] text-gray-400 text-center mb-1">Sponsored</p>
+    <AdBanner slot="1650043805" format="auto" />
   </div>
 );
 
 export const AdBannerVertical = ({ className = "" }) => (
-  <div className={`bg-gray-100 rounded-lg p-3 sticky top-4 ${className}`}>
-    <AdBanner slot="1650043805" format="vertical" style={{ minHeight: '600px' }} />
+  <div className={`ad-wrapper bg-gray-50 rounded-lg p-2 min-h-[600px] sticky top-4 ${className}`}>
+    <p className="text-[10px] text-gray-400 text-center mb-1">Advertisement</p>
+    <AdBanner slot="1650043805" format="auto" />
   </div>
 );
