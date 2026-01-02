@@ -328,12 +328,6 @@ body {
 }
 
 /* Ad Styles */
-.ad-horizontal,
-.ad-vertical,
-.ad-square {
-  width: 100%;
-}
-
 .adsbygoogle {
   display: block;
   width: 100%;
@@ -342,7 +336,7 @@ body {
 
 /* Placeholder for empty/unfilled ads */
 .adsbygoogle:empty {
-  min-height: 90px;
+  min-height: 100px;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-radius: 8px;
   display: flex;
@@ -357,14 +351,6 @@ body {
   text-transform: uppercase;
   letter-spacing: 2px;
   font-weight: 500;
-}
-
-.ad-vertical .adsbygoogle:empty {
-  min-height: 400px;
-}
-
-.ad-square .adsbygoogle:empty {
-  min-height: 200px;
 }
 
 @media (max-width: 640px) {
