@@ -329,47 +329,41 @@ body {
 
 /* Ad Styles */
 .ad-container {
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
-
-.ad-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 100%;
-}
-
-.adsbygoogle { 
-  display: block; 
-  width: 100% !important;
-  max-width: 100%;
   overflow: hidden;
 }
 
+.adsbygoogle {
+  display: block;
+  width: 100%;
+  min-height: 90px;
+}
+
+/* Empty ad placeholder */
+.adsbygoogle[data-ad-status="unfilled"],
 .adsbygoogle:empty {
+  min-height: 90px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
-  border-radius: 12px;
-  min-height: inherit;
 }
 
-.adsbygoogle:empty::before {
-  content: "Ad";
-  font-size: 12px;
+.adsbygoogle[data-ad-status="unfilled"]::after,
+.adsbygoogle:empty::after {
+  content: "Advertisement";
+  font-size: 11px;
   color: #94a3b8;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  font-weight: 500;
+  letter-spacing: 1px;
 }
 
 @media (max-width: 640px) {
-  .ad-container {
+  .ad-container > div {
+    border-radius: 0;
     margin-left: -1rem;
     margin-right: -1rem;
-    border-radius: 0;
     border-left: none;
     border-right: none;
   }
