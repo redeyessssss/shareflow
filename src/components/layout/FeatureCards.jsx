@@ -1,33 +1,39 @@
-import { Clock, Lock, Send } from 'lucide-react';
+import { memo } from 'react';
+import { Clock, Lock, MessageSquare } from 'lucide-react';
 
-export const FeatureCards = () => {
+export const FeatureCards = memo(() => {
   const features = [
     {
       icon: Clock,
       title: 'Auto-Expiry',
-      description: 'Files automatically delete after expiry time'
+      description: 'Links expire automatically'
     },
     {
       icon: Lock,
-      title: 'Password Protection',
-      description: 'Optional password for sensitive files'
+      title: 'Password Protected',
+      description: 'Secure sensitive files'
     },
     {
-      icon: Send,
+      icon: MessageSquare,
       title: 'Add Messages',
-      description: 'Include context with your files'
+      description: 'Include context with files'
     }
   ];
 
   return (
-    <div className="mt-8 grid md:grid-cols-3 gap-4">
+    <div className="grid md:grid-cols-3 gap-4 stagger-children">
       {features.map((feature, index) => (
-        <div key={index} className="bg-white p-4 rounded-lg shadow-sm">
-          <feature.icon className="w-8 h-8 text-indigo-600 mb-2" />
-          <h4 className="font-semibold text-gray-800 mb-1">{feature.title}</h4>
-          <p className="text-xs text-gray-600">{feature.description}</p>
+        <div 
+          key={index} 
+          className="glass rounded-xl p-5 card-hover group gpu"
+        >
+          <div className="w-10 h-10 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-soft">
+            <feature.icon className="w-5 h-5 text-indigo-600" strokeWidth={1.5} />
+          </div>
+          <h4 className="font-medium text-slate-800 mb-1">{feature.title}</h4>
+          <p className="text-sm text-slate-500">{feature.description}</p>
         </div>
       ))}
     </div>
   );
-};
+});

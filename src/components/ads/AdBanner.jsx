@@ -17,7 +17,7 @@ const AdUnit = memo(({ slot = "1650043805" }) => {
           observer.disconnect();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1, rootMargin: '100px' }
     );
 
     observer.observe(adRef.current);
@@ -40,11 +40,11 @@ const AdUnit = memo(({ slot = "1650043805" }) => {
 AdUnit.displayName = 'AdUnit';
 
 export const AdBannerHorizontal = memo(({ className = "" }) => (
-  <div className={`ad-section rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 p-3 my-6 ${className}`}>
+  <div className={`ad-section rounded-xl border border-slate-200/60 p-3 animate-fadeIn gpu ${className}`}>
     <div className="flex items-center justify-center gap-2 mb-2">
-      <div className="h-px flex-1 bg-gray-300" />
-      <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Sponsored</span>
-      <div className="h-px flex-1 bg-gray-300" />
+      <div className="h-px flex-1 bg-slate-200" />
+      <span className="text-[10px] text-slate-400 uppercase tracking-wider">Sponsored</span>
+      <div className="h-px flex-1 bg-slate-200" />
     </div>
     <div className="min-h-[90px]">
       <AdUnit slot="1650043805" />
@@ -55,9 +55,9 @@ export const AdBannerHorizontal = memo(({ className = "" }) => (
 AdBannerHorizontal.displayName = 'AdBannerHorizontal';
 
 export const AdBannerSquare = memo(({ className = "" }) => (
-  <div className={`ad-section rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 p-3 ${className}`}>
+  <div className={`ad-section rounded-xl border border-slate-200/60 p-3 animate-fadeIn gpu ${className}`}>
     <div className="text-center mb-2">
-      <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Ad</span>
+      <span className="text-[10px] text-slate-400 uppercase tracking-wider">Ad</span>
     </div>
     <div className="min-h-[250px]">
       <AdUnit slot="1650043805" />
@@ -68,9 +68,9 @@ export const AdBannerSquare = memo(({ className = "" }) => (
 AdBannerSquare.displayName = 'AdBannerSquare';
 
 export const AdBannerVertical = memo(({ className = "" }) => (
-  <div className={`ad-section rounded-xl bg-gradient-to-b from-gray-50 to-gray-100 border border-gray-200 p-3 sticky top-4 ${className}`}>
+  <div className={`ad-section rounded-xl border border-slate-200/60 p-3 sticky top-4 animate-slideInLeft gpu ${className}`}>
     <div className="text-center mb-2">
-      <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Advertisement</span>
+      <span className="text-[10px] text-slate-400 uppercase tracking-wider">Advertisement</span>
     </div>
     <div className="min-h-[500px]">
       <AdUnit slot="1650043805" />

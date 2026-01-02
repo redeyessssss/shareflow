@@ -1,10 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
-import { Download, Loader, RefreshCw } from 'lucide-react';
-import { FileItem } from '../ui';
+import { useState, useCallback, useEffect, memo } from 'react';
+import { Download, Loader, RefreshCw, ArrowRight } from 'lucide-react';
 import { fetchShare, incrementDownloadCount, deleteShare } from '../../services/shareService';
 import { getFileIcon, formatFileSize } from '../../utils/fileHelpers.jsx';
 
-export const ReceiveFiles = ({ onError, onSuccess, initialCode = '' }) => {
+export const ReceiveFiles = memo(({ onError, onSuccess, initialCode = '' }) => {
   const [shareCode, setShareCode] = useState(initialCode);
   const [downloadPassword, setDownloadPassword] = useState('');
   const [downloadedFiles, setDownloadedFiles] = useState([]);
@@ -12,7 +11,6 @@ export const ReceiveFiles = ({ onError, onSuccess, initialCode = '' }) => {
   const [loading, setLoading] = useState(false);
   const [shareData, setShareData] = useState(null);
 
-  // Auto-fetch if initialCode is provided
   useEffect(() => {
     if (initialCode && initialCode.length === 6) {
       setShareCode(initialCode);
@@ -50,11 +48,9 @@ export const ReceiveFiles = ({ onError, onSuccess, initialCode = '' }) => {
 
       await incrementDownloadCount(shareCode, fetchedShare.downloads);
       
-      // Check if this was the last allowed download - delete if so
       const newDownloadCount = fetchedShare.downloads + 1;
       if (fetchedShare.max_downloads !== 'unlimited' && 
           newDownloadCount >= parseInt(fetchedShare.max_downloads)) {
-        // Delete after showing files (will be deleted from storage and DB)
         setTimeout(() => {
           deleteShare(shareCode, fetchedShare.files);
         }, 1000);
@@ -97,100 +93,126 @@ export const ReceiveFiles = ({ onError, onSuccess, initialCode = '' }) => {
   }, []);
 
   return (
-    <div>
-      <div className="text-center mb-6">
-        <Download className="w-16 h-16 mx-auto mb-4 text-indigo-600" />
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Receive Files</h2>
-        <p className="text-gray-600">Enter the share code to download files</p>
-      </div>
+    <div className="gpu">
+      {downloadedFiles.length === 0 ? (
+        <div className="animate-fadeIn">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-float">
+              <Download className="w-7 h-7 text-indigo-600" strokeWidth={1.5} />
+            </div>
+            <h2 className="text-xl font-semibold text-slate-800 mb-1">Receive Files</h2>
+            <p className="text-sm text-slate-500">Enter the 6-digit code to access shared files</p>
+          </div>
 
-      <div className="max-w-md mx-auto space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Share Code</label>
-          <input
-            type="text"
-            value={shareCode}
-            onChange={(e) => setShareCode(e.target.value.toUpperCase())}
-            placeholder="Enter 6-digit code"
-            maxLength="6"
-            className="w-full p-4 text-2xl text-center font-bold tracking-wider border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase"
-          />
+          <div className="max-w-sm mx-auto space-y-4">
+            <div className="animate-fadeInUp" style={{ animationDelay: '50ms' }}>
+              <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Share Code</label>
+              <input
+                type="text"
+                value={shareCode}
+                onChange={(e) => setShareCode(e.target.value.toUpperCase())}
+                placeholder="XXXXXX"
+                maxLength="6"
+                className="w-full p-4 text-2xl text-center font-bold tracking-[0.3em] font-mono border-2 border-slate-200 rounded-xl input-modern uppercase placeholder:text-slate-300"
+              />
+            </div>
+
+            <div className="animate-fadeInUp" style={{ animationDelay: '100ms' }}>
+              <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Password (if required)</label>
+              <input
+                type="password"
+                value={downloadPassword}
+                onChange={(e) => setDownloadPassword(e.target.value)}
+                placeholder="Enter password"
+                className="w-full p-3 border-2 border-slate-200 rounded-xl text-sm input-modern"
+              />
+            </div>
+
+            <div className="animate-fadeInUp" style={{ animationDelay: '150ms' }}>
+              <button
+                onClick={handleReceive}
+                disabled={shareCode.length !== 6 || loading}
+                className="w-full py-4 btn-primary text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader className="w-5 h-5 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    Access Files
+                    <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-8 p-4 bg-slate-50 rounded-xl animate-fadeInUp" style={{ animationDelay: '200ms' }}>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">How it works</p>
+            <ul className="text-sm text-slate-600 space-y-2 stagger-children">
+              <li className="flex items-start gap-2">
+                <span className="w-5 h-5 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">1</span>
+                Enter the 6-digit code shared with you
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-5 h-5 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">2</span>
+                Enter password if the share is protected
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-5 h-5 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">3</span>
+                Download your files
+              </li>
+            </ul>
+          </div>
         </div>
+      ) : (
+        <div className="animate-scaleIn">
+          <div className="text-center mb-6">
+            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3 animate-bounceSoft">
+              <Download className="w-6 h-6 text-emerald-600" />
+            </div>
+            <h3 className="font-semibold text-slate-800">Files Ready</h3>
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Password (if required)</label>
-          <input
-            type="password"
-            value={downloadPassword}
-            onChange={(e) => setDownloadPassword(e.target.value)}
-            placeholder="Enter password"
-            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-          />
-        </div>
-
-        <button
-          onClick={handleReceive}
-          disabled={shareCode.length !== 6 || loading}
-          className="w-full py-4 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {loading ? (
-            <>
-              <Loader className="w-5 h-5 animate-spin" />
-              Loading...
-            </>
-          ) : (
-            <>
-              <Download className="w-5 h-5" />
-              Access Files
-            </>
-          )}
-        </button>
-      </div>
-
-      {downloadedFiles.length > 0 && (
-        <div className="mt-8 max-w-md mx-auto">
           {senderMessage && (
-            <div className="mb-4 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-              <p className="text-sm font-medium text-indigo-800 mb-1">Message from sender:</p>
-              <p className="text-sm text-indigo-700">{senderMessage}</p>
+            <div className="mb-5 p-4 bg-indigo-50 rounded-xl border border-indigo-100 animate-fadeInUp">
+              <p className="text-xs font-medium text-indigo-600 uppercase tracking-wider mb-1">Message</p>
+              <p className="text-sm text-slate-700">{senderMessage}</p>
             </div>
           )}
-          <h3 className="font-semibold text-gray-800 mb-4">Available Files ({downloadedFiles.length}):</h3>
-          <div className="space-y-3">
+
+          <div className="space-y-2 mb-5 stagger-children">
             {downloadedFiles.map((file, index) => (
-              <div key={index} className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <div className="text-indigo-600">{getFileIcon(file.type)}</div>
+              <div key={index} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-all duration-200 group hover-lift">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-soft group-hover:scale-105 transition-transform duration-200">
+                  <span className="text-indigo-500">{getFileIcon(file.type)}</span>
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">{file.name}</p>
-                  <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+                  <p className="text-sm font-medium text-slate-700 truncate">{file.name}</p>
+                  <p className="text-xs text-slate-400">{formatFileSize(file.size)}</p>
                 </div>
                 <button
                   onClick={() => downloadFile(file)}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 text-sm font-medium flex items-center gap-1 hover:scale-105 active:scale-95"
                 >
-                  Download
+                  <Download className="w-4 h-4" />
+                  <span className="hidden sm:inline">Download</span>
                 </button>
               </div>
             ))}
           </div>
+
           <button
             onClick={resetForm}
-            className="mt-4 w-full py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+            className="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-medium hover:bg-slate-200 transition-all duration-200 flex items-center justify-center gap-2 hover-lift"
           >
             <RefreshCw className="w-4 h-4" />
             Enter Another Code
           </button>
         </div>
       )}
-
-      <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-        <h4 className="font-semibold text-gray-800 mb-2">How it works:</h4>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• Enter the 6-digit code shared with you</li>
-          <li>• Enter password if protected</li>
-          <li>• Click to download each file</li>
-        </ul>
-      </div>
     </div>
   );
-};
+});

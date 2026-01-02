@@ -1,17 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense, memo } from 'react';
 import { Header, ModeToggle, FeatureCards } from './components/layout';
 import { Notification } from './components/ui';
-import { SendFiles, ReceiveFiles } from './components/features';
-import { AdBannerHorizontal, AdBannerVertical, AdBannerSquare } from './components/ads';
+import { AdBannerHorizontal, AdBannerVertical } from './components/ads';
 import { useNotification } from './hooks/useNotification';
-import { Shield, Zap, Globe, Users } from 'lucide-react';
+import { Shield, Zap, Globe, UserCheck } from 'lucide-react';
+
+// Lazy load heavy components
+const SendFiles = lazy(() => import('./components/features/SendFiles').then(m => ({ default: m.SendFiles })));
+const ReceiveFiles = lazy(() => import('./components/features/ReceiveFiles').then(m => ({ default: m.ReceiveFiles })));
+
+// Loading skeleton
+const LoadingSkeleton = () => (
+  <div className="animate-pulse space-y-4 p-8">
+    <div className="h-32 bg-slate-200 rounded-2xl" />
+    <div className="h-10 bg-slate-200 rounded-xl w-3/4 mx-auto" />
+    <div className="h-12 bg-slate-200 rounded-xl" />
+  </div>
+);
 
 export default function FileShareApp() {
   const [mode, setMode] = useState('send');
   const [initialCode, setInitialCode] = useState('');
+  const [mounted, setMounted] = useState(false);
   const { error, setError, success, setSuccess, clearNotifications } = useNotification();
 
   useEffect(() => {
+    setMounted(true);
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     if (code) {
@@ -27,139 +41,148 @@ export default function FileShareApp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className={`min-h-screen ${mounted ? 'animate-fadeIn' : 'opacity-0'}`}>
       <Notification error={error} success={success} onClose={clearNotifications} />
       
       {/* Hero Section */}
-      <header className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 text-white py-10 md:py-14 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+      <header className="relative overflow-hidden gpu">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900" />
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute inset-0" style={{ 
+            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)',
+            backgroundSize: '32px 32px'
+          }} />
         </div>
-        <div className="max-w-6xl mx-auto text-center relative z-10">
-          <Header />
-          <p className="mt-4 text-indigo-100 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-            Share files securely with auto-expiring links, password protection, and download limits. 
-            <span className="hidden md:inline"> No registration required.</span>
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />
+        
+        <div className="relative z-10 max-w-5xl mx-auto px-4 py-16 md:py-20 text-center">
+          <div className="animate-fadeInUp">
+            <Header />
+          </div>
+          <p className="mt-5 text-slate-300 text-base md:text-lg max-w-xl mx-auto leading-relaxed font-light animate-fadeInUp" style={{ animationDelay: '100ms' }}>
+            Share files securely with auto-expiring links, password protection, and download limits.
           </p>
         </div>
       </header>
 
       {/* Main Layout */}
-      <div className="max-w-7xl mx-auto px-4 py-6 lg:py-8">
-        <div className="flex flex-col xl:flex-row gap-6 lg:gap-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 lg:py-12 -mt-8 relative z-20">
+        <div className="flex flex-col xl:flex-row gap-8">
           
-          {/* Left Sidebar - Desktop Only */}
-          <aside className="hidden xl:block w-[280px] flex-shrink-0 space-y-6">
+          {/* Left Sidebar */}
+          <aside className="hidden xl:block w-[260px] flex-shrink-0 animate-slideInLeft">
             <AdBannerVertical />
-            <AdBannerSquare />
           </aside>
 
           {/* Main Content */}
-          <main className="flex-1 min-w-0 space-y-6">
+          <main className="flex-1 min-w-0 space-y-8">
             {/* Mobile Top Ad */}
-            <div className="xl:hidden">
+            <div className="xl:hidden animate-fadeInUp">
               <AdBannerHorizontal />
             </div>
 
-            <ModeToggle mode={mode} onModeChange={handleModeChange} />
+            <div className="animate-fadeInUp" style={{ animationDelay: '50ms' }}>
+              <ModeToggle mode={mode} onModeChange={handleModeChange} />
+            </div>
 
-            <div className="bg-white rounded-2xl shadow-lg shadow-indigo-100/50 p-5 md:p-8 border border-gray-100">
-              {mode === 'send' ? (
-                <SendFiles onError={setError} onSuccess={setSuccess} />
-              ) : (
-                <ReceiveFiles onError={setError} onSuccess={setSuccess} initialCode={initialCode} />
-              )}
+            <div className="glass rounded-2xl shadow-elevated p-6 md:p-8 animate-scaleIn hover-glow" style={{ animationDelay: '100ms' }}>
+              <Suspense fallback={<LoadingSkeleton />}>
+                {mode === 'send' ? (
+                  <SendFiles onError={setError} onSuccess={setSuccess} />
+                ) : (
+                  <ReceiveFiles onError={setError} onSuccess={setSuccess} initialCode={initialCode} />
+                )}
+              </Suspense>
+            </div>
+
+            {/* Features */}
+            <div className="animate-fadeInUp" style={{ animationDelay: '150ms' }}>
+              <FeatureCards />
             </div>
 
             {/* Mid Content Ad */}
-            <AdBannerHorizontal />
-
-            {/* Features */}
-            <FeatureCards />
-
-            {/* Mobile Bottom Ad */}
-            <div className="xl:hidden">
+            <div className="animate-fadeInUp" style={{ animationDelay: '200ms' }}>
               <AdBannerHorizontal />
             </div>
           </main>
 
-          {/* Right Sidebar - Desktop Only */}
-          <aside className="hidden xl:block w-[280px] flex-shrink-0 space-y-6">
+          {/* Right Sidebar */}
+          <aside className="hidden xl:block w-[260px] flex-shrink-0 animate-slideInRight">
             <AdBannerVertical />
-            <AdBannerSquare />
           </aside>
         </div>
       </div>
 
       {/* Stats Section */}
-      <section className="bg-white py-12 md:py-16 px-4 border-y border-gray-100">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-10">
+      <section className="py-16 md:py-20 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-semibold text-center text-slate-800 mb-12">
             Why Choose ShareFlow?
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            <StatCard icon={Shield} title="Secure" value="256-bit" desc="Encryption" color="indigo" />
-            <StatCard icon={Zap} title="Fast" value="100MB+" desc="File Support" color="amber" />
-            <StatCard icon={Globe} title="Global" value="Worldwide" desc="Access" color="emerald" />
-            <StatCard icon={Users} title="Free" value="No Signup" desc="Required" color="purple" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 stagger-children">
+            <StatCard icon={Shield} value="256-bit" label="Encryption" />
+            <StatCard icon={Zap} value="100MB+" label="File Support" />
+            <StatCard icon={Globe} value="Global" label="Access" />
+            <StatCard icon={UserCheck} value="No Signup" label="Required" />
           </div>
         </div>
       </section>
 
-      {/* Full Width Ad */}
-      <div className="max-w-5xl mx-auto px-4 py-6">
+      {/* Ad Section */}
+      <div className="max-w-4xl mx-auto px-4 pb-8">
         <AdBannerHorizontal />
       </div>
 
       {/* How It Works */}
-      <section className="py-12 md:py-16 px-4 bg-gradient-to-br from-indigo-50 to-purple-50">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-10">
+      <section className="py-16 md:py-20 px-4 bg-white/50">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-semibold text-center text-slate-800 mb-12">
             How It Works
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <StepCard number="1" title="Upload Files" desc="Drag and drop or select files to share" />
-            <StepCard number="2" title="Get Share Code" desc="Receive a unique 6-character code and link" />
-            <StepCard number="3" title="Share & Download" desc="Share the code and recipients can download" />
+          <div className="grid md:grid-cols-3 gap-6 stagger-children">
+            <StepCard step="01" title="Upload" desc="Drag and drop your files" />
+            <StepCard step="02" title="Share" desc="Get a unique 6-digit code" />
+            <StepCard step="03" title="Download" desc="Recipients access instantly" />
           </div>
         </div>
       </section>
 
       {/* Pre-Footer Ad */}
-      <div className="max-w-5xl mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto px-4 py-8">
         <AdBannerHorizontal />
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-10 px-4">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+      <footer className="glass-dark text-white py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-center md:text-left">
             <div>
-              <h3 className="font-bold text-lg mb-4 text-indigo-400">ShareFlow</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Secure, fast, and easy file sharing for everyone. No registration needed.
+              <h3 className="font-semibold text-lg mb-3 gradient-text">ShareFlow</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Secure, fast, and easy file sharing. No registration needed.
               </p>
             </div>
             <div>
-              <h3 className="font-bold text-lg mb-4">Features</h3>
-              <ul className="text-gray-400 text-sm space-y-2">
-                <li>✓ Auto-expiring links</li>
-                <li>✓ Password protection</li>
-                <li>✓ Download limits</li>
-                <li>✓ Share via link or code</li>
+              <h3 className="font-medium text-sm uppercase tracking-wider text-slate-300 mb-4">Features</h3>
+              <ul className="text-slate-400 text-sm space-y-2">
+                <li>Auto-expiring links</li>
+                <li>Password protection</li>
+                <li>Download limits</li>
+                <li>Share via link or code</li>
               </ul>
             </div>
             <div>
-              <h3 className="font-bold text-lg mb-4">Legal</h3>
-              <ul className="text-gray-400 text-sm space-y-2">
-                <li className="hover:text-white cursor-pointer transition">Privacy Policy</li>
-                <li className="hover:text-white cursor-pointer transition">Terms of Service</li>
-                <li className="hover:text-white cursor-pointer transition">Contact Us</li>
+              <h3 className="font-medium text-sm uppercase tracking-wider text-slate-300 mb-4">Legal</h3>
+              <ul className="text-slate-400 text-sm space-y-2">
+                <li className="hover:text-white cursor-pointer transition-colors duration-200">Privacy Policy</li>
+                <li className="hover:text-white cursor-pointer transition-colors duration-200">Terms of Service</li>
+                <li className="hover:text-white cursor-pointer transition-colors duration-200">Contact</li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-6 text-center text-gray-500 text-sm">
-            © {new Date().getFullYear()} ShareFlow. All rights reserved.
+          <div className="border-t border-slate-700/50 mt-10 pt-6 text-center text-slate-500 text-sm">
+            © {new Date().getFullYear()} ShareFlow
           </div>
         </div>
       </footer>
@@ -167,32 +190,20 @@ export default function FileShareApp() {
   );
 }
 
-const StatCard = ({ icon: Icon, title, value, desc, color }) => {
-  const colors = {
-    indigo: 'bg-indigo-100 text-indigo-600',
-    amber: 'bg-amber-100 text-amber-600',
-    emerald: 'bg-emerald-100 text-emerald-600',
-    purple: 'bg-purple-100 text-purple-600',
-  };
-  
-  return (
-    <div className="text-center group">
-      <div className={`w-14 h-14 md:w-16 md:h-16 ${colors[color]} rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform`}>
-        <Icon className="w-7 h-7 md:w-8 md:h-8" />
-      </div>
-      <p className="text-xs text-gray-500 uppercase tracking-wide">{title}</p>
-      <p className="text-xl md:text-2xl font-bold text-gray-800">{value}</p>
-      <p className="text-sm text-gray-500">{desc}</p>
+const StatCard = memo(({ icon: Icon, value, label }) => (
+  <div className="text-center group gpu">
+    <div className="w-14 h-14 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300 shadow-soft hover-lift">
+      <Icon className="w-6 h-6 text-indigo-600" strokeWidth={1.5} />
     </div>
-  );
-};
-
-const StepCard = ({ number, title, desc }) => (
-  <div className="bg-white rounded-2xl p-6 text-center shadow-md hover:shadow-lg transition-shadow border border-gray-100">
-    <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-xl flex items-center justify-center text-xl font-bold mx-auto mb-4 shadow-lg shadow-indigo-200">
-      {number}
-    </div>
-    <h3 className="font-semibold text-gray-800 mb-2">{title}</h3>
-    <p className="text-sm text-gray-600 leading-relaxed">{desc}</p>
+    <p className="text-xl font-semibold text-slate-800">{value}</p>
+    <p className="text-sm text-slate-500">{label}</p>
   </div>
-);
+));
+
+const StepCard = memo(({ step, title, desc }) => (
+  <div className="glass rounded-2xl p-6 text-center card-hover gpu">
+    <span className="text-xs font-medium text-indigo-500 tracking-wider">{step}</span>
+    <h3 className="font-semibold text-slate-800 mt-2 mb-1">{title}</h3>
+    <p className="text-sm text-slate-500">{desc}</p>
+  </div>
+));

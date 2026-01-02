@@ -1,16 +1,18 @@
-export const ProgressBar = ({ progress, label = "Uploading..." }) => {
+import { memo } from 'react';
+
+export const ProgressBar = memo(({ progress, label = "Uploading..." }) => {
   return (
-    <div className="mt-6">
+    <div className="mt-6 animate-fadeInUp gpu">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-gray-700">{label}</span>
-        <span className="text-sm font-medium text-indigo-600">{progress}%</span>
+        <span className="text-sm font-medium text-slate-600">{label}</span>
+        <span className="text-sm font-semibold text-indigo-600">{progress}%</span>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
+      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
         <div 
-          className="bg-indigo-600 h-2 rounded-full transition-all duration-300" 
+          className="h-full rounded-full transition-all duration-300 ease-out progress-bar"
           style={{ width: `${progress}%` }} 
         />
       </div>
     </div>
   );
-};
+});
