@@ -71,8 +71,8 @@ export default function FileShareApp() {
         <div className="flex flex-col lg:flex-row gap-6">
           
           {/* Left Sidebar Ad */}
-          <aside className="hidden lg:block w-[300px] flex-shrink-0">
-            <div className="sticky top-4">
+          <aside className="hidden lg:flex lg:w-[320px] flex-shrink-0" style={{ minWidth: '320px' }}>
+            <div className="sticky top-4 w-full">
               <AdBannerVertical />
             </div>
           </aside>
@@ -106,8 +106,8 @@ export default function FileShareApp() {
           </div>
 
           {/* Right Sidebar Ad */}
-          <aside className="hidden lg:block w-[300px] flex-shrink-0">
-            <div className="sticky top-4">
+          <aside className="hidden lg:flex lg:w-[320px] flex-shrink-0" style={{ minWidth: '320px' }}>
+            <div className="sticky top-4 w-full">
               <AdBannerVertical />
             </div>
           </aside>
