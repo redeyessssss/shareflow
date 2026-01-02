@@ -87,6 +87,26 @@ export const incrementDownloadCount = async (code, currentCount) => {
     .eq('code', code.toUpperCase());
 };
 
+export const deleteShare = async (code, files) => {
+  try {
+    // Delete files from storage
+    if (files && files.length > 0) {
+      const filePaths = files.map(f => f.path);
+      await supabase.storage
+        .from('shareflow')
+        .remove(filePaths);
+    }
+
+    // Delete record from database
+    await supabase
+      .from('shares')
+      .delete()
+      .eq('code', code.toUpperCase());
+  } catch (err) {
+    console.error('Error deleting share:', err);
+  }
+};
+
 export const generateShareCode = () => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 };

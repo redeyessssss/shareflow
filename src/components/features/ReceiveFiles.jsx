@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Download, Loader, RefreshCw } from 'lucide-react';
 import { FileItem } from '../ui';
-import { fetchShare, incrementDownloadCount } from '../../services/shareService';
+import { fetchShare, incrementDownloadCount, deleteShare } from '../../services/shareService';
 import { getFileIcon, formatFileSize } from '../../utils/fileHelpers.jsx';
 
 export const ReceiveFiles = ({ onError, onSuccess, initialCode = '' }) => {
@@ -10,6 +10,7 @@ export const ReceiveFiles = ({ onError, onSuccess, initialCode = '' }) => {
   const [downloadedFiles, setDownloadedFiles] = useState([]);
   const [senderMessage, setSenderMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [shareData, setShareData] = useState(null);
 
   // Auto-fetch if initialCode is provided
   useEffect(() => {
@@ -29,27 +30,39 @@ export const ReceiveFiles = ({ onError, onSuccess, initialCode = '' }) => {
     setSenderMessage('');
 
     try {
-      const shareData = await fetchShare(shareCode);
+      const fetchedShare = await fetchShare(shareCode);
 
-      if (shareData.password && shareData.password !== downloadPassword) {
+      if (fetchedShare.password && fetchedShare.password !== downloadPassword) {
         onError('Incorrect password. Please try again.');
         return;
       }
 
-      if (shareData.max_downloads !== 'unlimited' && 
-          shareData.downloads >= parseInt(shareData.max_downloads)) {
+      if (fetchedShare.max_downloads !== 'unlimited' && 
+          fetchedShare.downloads >= parseInt(fetchedShare.max_downloads)) {
         onError('Download limit reached for this share.');
         return;
       }
 
-      if (new Date(shareData.expires_at) < new Date()) {
+      if (new Date(fetchedShare.expires_at) < new Date()) {
         onError('This share has expired.');
         return;
       }
 
-      await incrementDownloadCount(shareCode, shareData.downloads);
-      setDownloadedFiles(shareData.files || []);
-      if (shareData.message) setSenderMessage(shareData.message);
+      await incrementDownloadCount(shareCode, fetchedShare.downloads);
+      
+      // Check if this was the last allowed download - delete if so
+      const newDownloadCount = fetchedShare.downloads + 1;
+      if (fetchedShare.max_downloads !== 'unlimited' && 
+          newDownloadCount >= parseInt(fetchedShare.max_downloads)) {
+        // Delete after showing files (will be deleted from storage and DB)
+        setTimeout(() => {
+          deleteShare(shareCode, fetchedShare.files);
+        }, 1000);
+      }
+
+      setShareData(fetchedShare);
+      setDownloadedFiles(fetchedShare.files || []);
+      if (fetchedShare.message) setSenderMessage(fetchedShare.message);
       onSuccess('Files retrieved successfully!');
     } catch (err) {
       onError(err.message || 'Error retrieving files.');
@@ -80,6 +93,7 @@ export const ReceiveFiles = ({ onError, onSuccess, initialCode = '' }) => {
     setDownloadPassword('');
     setDownloadedFiles([]);
     setSenderMessage('');
+    setShareData(null);
   }, []);
 
   return (
