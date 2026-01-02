@@ -1,1 +1,59 @@
 @import "tailwindcss";
+
+/* Ad Container Styles */
+.ad-container {
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ad-horizontal {
+  min-height: 100px;
+}
+
+.ad-square {
+  min-height: 250px;
+}
+
+.ad-vertical {
+  min-height: 600px;
+}
+
+/* Placeholder for ads when not loaded */
+.adsbygoogle:empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 8px;
+  min-height: inherit;
+}
+
+.adsbygoogle:empty::after {
+  content: "Ad Space";
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .ad-vertical {
+    min-height: 250px;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better focus styles */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}

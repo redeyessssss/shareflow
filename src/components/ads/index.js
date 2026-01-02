@@ -1,1 +1,1 @@
-export { AdBanner, AdBannerHorizontal, AdBannerSquare } from './AdBanner';
+export { AdBanner, AdBannerHorizontal, AdBannerSquare, AdBannerVertical } from './AdBanner';
