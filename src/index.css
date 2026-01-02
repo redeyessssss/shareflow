@@ -327,21 +327,39 @@ body {
   animation: gradient 3s ease infinite;
 }
 
-/* Ad Styles */
+/* Ad Styles - Force dimensions for AdSense */
 .adsbygoogle {
-  display: block;
-  width: 100%;
-  height: auto;
+  display: block !important;
   overflow: hidden;
+  min-width: 300px !important;
+  width: 100% !important;
 }
 
-/* Ensure sidebar ads have proper dimensions */
-aside .adsbygoogle {
-  min-width: 250px;
-  max-width: 300px;
+/* Horizontal ads */
+ins.adsbygoogle[data-ad-format="horizontal"] {
+  min-height: 90px !important;
+  height: auto !important;
 }
 
-/* Placeholder for empty ads */
+/* Vertical sidebar ads */
+ins.adsbygoogle[data-ad-format="vertical"] {
+  min-height: 600px !important;
+  width: 300px !important;
+  max-width: 300px !important;
+}
+
+/* Rectangle ads */
+ins.adsbygoogle[data-ad-format="rectangle"] {
+  min-height: 250px !important;
+  width: 300px !important;
+}
+
+/* Auto format ads */
+ins.adsbygoogle[data-ad-format="auto"] {
+  min-height: 90px !important;
+}
+
+/* Placeholder for empty/unfilled ads */
 .adsbygoogle:empty {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-radius: 8px;
@@ -349,15 +367,15 @@ aside .adsbygoogle {
 }
 
 .adsbygoogle:empty::after {
-  content: "Ad";
+  content: "Advertisement";
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 11px;
+  font-size: 10px;
   color: #94a3b8;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
 }
 
 @media (prefers-reduced-motion: reduce) {
