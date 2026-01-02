@@ -79,8 +79,8 @@ export default function FileShareApp() {
 
           {/* Main Content */}
           <div className="flex-1 min-w-0 space-y-6">
-            {/* Mobile Ad */}
-            <div className="lg:hidden">
+            {/* Mobile Ad - only show on screens >= 320px */}
+            <div className="lg:hidden" style={{ minWidth: '320px' }}>
               <AdBannerHorizontal />
             </div>
             
