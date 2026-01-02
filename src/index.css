@@ -1,59 +1,77 @@
 @import "tailwindcss";
 
-/* Ad Container Styles */
-.ad-container {
-  min-height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Ad Styles */
+.ad-section {
+  transition: all 0.3s ease;
 }
 
-.ad-horizontal {
-  min-height: 100px;
+.ad-section:hover {
+  border-color: #c7d2fe;
 }
 
-.ad-square {
-  min-height: 250px;
+.adsbygoogle {
+  display: block;
+  width: 100%;
 }
 
-.ad-vertical {
-  min-height: 600px;
-}
-
-/* Placeholder for ads when not loaded */
-.adsbygoogle:empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+.adsbygoogle:empty::before {
+  content: "";
+  display: block;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-radius: 8px;
   min-height: inherit;
 }
 
-.adsbygoogle:empty::after {
-  content: "Ad Space";
-  color: #9ca3af;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .ad-vertical {
-    min-height: 250px;
-  }
-}
-
-/* Smooth scrolling */
+/* Smooth Scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Better focus styles */
+/* Focus Styles */
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
   outline: 2px solid #6366f1;
   outline-offset: 2px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 640px) {
+  .ad-section {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
 }

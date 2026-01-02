@@ -1,60 +1,83 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 
-export const AdBanner = ({ slot = "1650043805" }) => {
+const AdUnit = memo(({ slot = "1650043805" }) => {
   const adRef = useRef(null);
-  const initialized = useRef(false);
+  const loaded = useRef(false);
 
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
+    if (loaded.current || !adRef.current) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loaded.current) {
+          loaded.current = true;
+          try {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+          } catch (e) {}
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
 
-    const timer = setTimeout(() => {
-      try {
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
-      } catch (e) {
-        // Ad already loaded or blocked
-      }
-    }, 200);
-
-    return () => clearTimeout(timer);
+    observer.observe(adRef.current);
+    return () => observer.disconnect();
   }, []);
 
   return (
     <ins
       ref={adRef}
       className="adsbygoogle"
-      style={{ display: 'block' }}
+      style={{ display: 'block', width: '100%' }}
       data-ad-client="ca-pub-8746222528910149"
       data-ad-slot={slot}
       data-ad-format="auto"
       data-full-width-responsive="true"
     />
   );
-};
+});
 
-export const AdBannerHorizontal = ({ className = "" }) => (
-  <div className={`bg-gray-50 rounded-lg p-2 my-4 min-h-[100px] flex flex-col ${className}`}>
-    <p className="text-[10px] text-gray-400 text-center">Advertisement</p>
-    <div className="flex-1">
-      <AdBanner slot="1650043805" />
+AdUnit.displayName = 'AdUnit';
+
+export const AdBannerHorizontal = memo(({ className = "" }) => (
+  <div className={`ad-section rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 p-3 my-6 ${className}`}>
+    <div className="flex items-center justify-center gap-2 mb-2">
+      <div className="h-px flex-1 bg-gray-300" />
+      <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Sponsored</span>
+      <div className="h-px flex-1 bg-gray-300" />
+    </div>
+    <div className="min-h-[90px]">
+      <AdUnit slot="1650043805" />
     </div>
   </div>
-);
+));
 
-export const AdBannerSquare = ({ className = "" }) => (
-  <div className={`bg-gray-50 rounded-lg p-2 min-h-[260px] flex flex-col ${className}`}>
-    <p className="text-[10px] text-gray-400 text-center">Sponsored</p>
-    <div className="flex-1">
-      <AdBanner slot="1650043805" />
+AdBannerHorizontal.displayName = 'AdBannerHorizontal';
+
+export const AdBannerSquare = memo(({ className = "" }) => (
+  <div className={`ad-section rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 p-3 ${className}`}>
+    <div className="text-center mb-2">
+      <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Ad</span>
+    </div>
+    <div className="min-h-[250px]">
+      <AdUnit slot="1650043805" />
     </div>
   </div>
-);
+));
 
-export const AdBannerVertical = ({ className = "" }) => (
-  <div className={`bg-gray-50 rounded-lg p-2 min-h-[600px] flex flex-col sticky top-4 ${className}`}>
-    <p className="text-[10px] text-gray-400 text-center">Advertisement</p>
-    <div className="flex-1">
-      <AdBanner slot="1650043805" />
+AdBannerSquare.displayName = 'AdBannerSquare';
+
+export const AdBannerVertical = memo(({ className = "" }) => (
+  <div className={`ad-section rounded-xl bg-gradient-to-b from-gray-50 to-gray-100 border border-gray-200 p-3 sticky top-4 ${className}`}>
+    <div className="text-center mb-2">
+      <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Advertisement</span>
+    </div>
+    <div className="min-h-[500px]">
+      <AdUnit slot="1650043805" />
     </div>
   </div>
-);
+));
+
+AdBannerVertical.displayName = 'AdBannerVertical';
+
+export { AdUnit as AdBanner };
