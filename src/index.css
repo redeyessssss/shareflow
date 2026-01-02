@@ -328,7 +328,9 @@ body {
 }
 
 /* Ad Styles */
-.ad-container {
+.ad-horizontal,
+.ad-vertical,
+.ad-square {
   width: 100%;
 }
 
@@ -336,37 +338,37 @@ body {
   display: block;
   width: 100%;
   height: auto;
+}
+
+/* Placeholder for empty/unfilled ads */
+.adsbygoogle:empty {
   min-height: 90px;
-}
-
-/* Sidebar ads need fixed width */
-aside .adsbygoogle {
-  min-height: 250px;
-}
-
-/* Placeholder for empty ads */
-.adsbygoogle:empty,
-.adsbygoogle[data-ad-status="unfilled"] {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-radius: 8px;
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.adsbygoogle:empty::after,
-.adsbygoogle[data-ad-status="unfilled"]::after {
+.adsbygoogle:empty::after {
   content: "Ad";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: 12px;
+  color: #cbd5e1;
   text-transform: uppercase;
   letter-spacing: 2px;
+  font-weight: 500;
+}
+
+.ad-vertical .adsbygoogle:empty {
+  min-height: 400px;
+}
+
+.ad-square .adsbygoogle:empty {
+  min-height: 200px;
 }
 
 @media (max-width: 640px) {
-  .ad-container > div {
+  .ad-horizontal > div {
     border-radius: 0;
     margin-left: -1rem;
     margin-right: -1rem;

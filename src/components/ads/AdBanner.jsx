@@ -1,55 +1,51 @@
 import { useEffect, useRef, memo } from 'react';
 
-// Core Ad Unit Component
-const AdUnit = memo(({ slot = "1650043805", format = "auto", layoutKey = "" }) => {
+// Core Ad Unit
+const AdUnit = memo(({ slot = "1650043805" }) => {
   const adRef = useRef(null);
-  const isLoaded = useRef(false);
+  const pushed = useRef(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || pushed.current) return;
     
     const timer = setTimeout(() => {
-      if (!isLoaded.current && adRef.current) {
-        try {
+      try {
+        if (adRef.current && !pushed.current) {
           (window.adsbygoogle = window.adsbygoogle || []).push({});
-          isLoaded.current = true;
-        } catch (e) {
-          console.log('Ad error:', e);
+          pushed.current = true;
         }
+      } catch (e) {
+        console.log('Ad push error:', e);
       }
-    }, 100);
+    }, 200);
 
     return () => clearTimeout(timer);
   }, []);
 
-  const adProps = {
-    ref: adRef,
-    className: "adsbygoogle",
-    style: { display: 'block' },
-    'data-ad-client': "ca-pub-8746222528910149",
-    'data-ad-slot': slot,
-    'data-ad-format': format,
-    'data-full-width-responsive': "true"
-  };
-
-  if (layoutKey) {
-    adProps['data-ad-layout-key'] = layoutKey;
-  }
-
-  return <ins {...adProps} />;
+  return (
+    <ins
+      ref={adRef}
+      className="adsbygoogle"
+      style={{ display: 'block', width: '100%' }}
+      data-ad-client="ca-pub-8746222528910149"
+      data-ad-slot={slot}
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    />
+  );
 });
 
 AdUnit.displayName = 'AdUnit';
 
-// Horizontal Ad - For content sections
+// Horizontal Ad Banner
 export const AdBannerHorizontal = memo(({ className = "" }) => (
-  <div className={`w-full my-6 ${className}`}>
-    <div className="bg-white rounded-xl border border-slate-200 p-4">
-      <div className="flex items-center justify-center mb-3">
-        <span className="text-[10px] text-slate-400 uppercase tracking-wider">Sponsored</span>
+  <div className={`ad-horizontal w-full ${className}`}>
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="px-4 py-2 border-b border-slate-100 bg-slate-50">
+        <span className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Sponsored</span>
       </div>
-      <div className="min-h-[100px] flex items-center justify-center bg-slate-50 rounded-lg">
-        <AdUnit slot="1650043805" format="auto" />
+      <div className="p-4" style={{ minHeight: '100px' }}>
+        <AdUnit slot="1650043805" />
       </div>
     </div>
   </div>
@@ -57,15 +53,15 @@ export const AdBannerHorizontal = memo(({ className = "" }) => (
 
 AdBannerHorizontal.displayName = 'AdBannerHorizontal';
 
-// Vertical Ad - For sidebars
-export const AdBannerVertical = memo(({ className = "" }) => (
-  <div className={`w-full sticky top-4 ${className}`}>
-    <div className="bg-white rounded-xl border border-slate-200 p-4">
-      <div className="text-center mb-3">
-        <span className="text-[10px] text-slate-400 uppercase tracking-wider">Advertisement</span>
+// Vertical Sidebar Ad Banner
+export const AdBannerVertical = memo(({ className = "", position = "left" }) => (
+  <div className={`ad-vertical w-full ${className}`} style={{ width: '100%' }}>
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="px-4 py-2 border-b border-slate-100 bg-slate-50 text-center">
+        <span className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Advertisement</span>
       </div>
-      <div className="min-h-[600px] flex items-center justify-center bg-slate-50 rounded-lg">
-        <AdUnit slot="1650043805" format="auto" />
+      <div className="p-3" style={{ minHeight: '600px' }}>
+        <AdUnit slot="1650043805" />
       </div>
     </div>
   </div>
@@ -73,15 +69,15 @@ export const AdBannerVertical = memo(({ className = "" }) => (
 
 AdBannerVertical.displayName = 'AdBannerVertical';
 
-// Square Ad - For sidebars
+// Square Ad Banner
 export const AdBannerSquare = memo(({ className = "" }) => (
-  <div className={`w-full ${className}`}>
-    <div className="bg-white rounded-xl border border-slate-200 p-4">
-      <div className="text-center mb-3">
-        <span className="text-[10px] text-slate-400 uppercase tracking-wider">Ad</span>
+  <div className={`ad-square w-full ${className}`}>
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="px-4 py-2 border-b border-slate-100 bg-slate-50 text-center">
+        <span className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Ad</span>
       </div>
-      <div className="min-h-[250px] flex items-center justify-center bg-slate-50 rounded-lg">
-        <AdUnit slot="1650043805" format="auto" />
+      <div className="p-3" style={{ minHeight: '250px' }}>
+        <AdUnit slot="1650043805" />
       </div>
     </div>
   </div>
