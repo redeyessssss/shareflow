@@ -16,11 +16,26 @@ const LoadingSkeleton = () => (
   </div>
 );
 
+// Hook to detect screen size
+const useIsDesktop = () => {
+  const [isDesktop, setIsDesktop] = useState(false);
+  
+  useEffect(() => {
+    const checkSize = () => setIsDesktop(window.innerWidth >= 1024);
+    checkSize();
+    window.addEventListener('resize', checkSize);
+    return () => window.removeEventListener('resize', checkSize);
+  }, []);
+  
+  return isDesktop;
+};
+
 export default function FileShareApp() {
   const [mode, setMode] = useState('send');
   const [initialCode, setInitialCode] = useState('');
   const [mounted, setMounted] = useState(false);
   const { error, setError, success, setSuccess, clearNotifications } = useNotification();
+  const isDesktop = useIsDesktop();
 
   useEffect(() => {
     setMounted(true);
@@ -70,19 +85,23 @@ export default function FileShareApp() {
       <div className="max-w-[1400px] mx-auto px-4 py-8 lg:py-12 -mt-8 relative z-20">
         <div className="flex flex-col lg:flex-row gap-6">
           
-          {/* Left Sidebar Ad */}
-          <aside className="hidden lg:flex lg:w-[320px] flex-shrink-0" style={{ minWidth: '320px' }}>
-            <div className="sticky top-4 w-full">
-              <AdBannerVertical />
-            </div>
-          </aside>
+          {/* Left Sidebar Ad - Desktop only */}
+          {isDesktop && (
+            <aside className="w-[320px] flex-shrink-0" style={{ minWidth: '320px' }}>
+              <div className="sticky top-4 w-full">
+                <AdBannerVertical />
+              </div>
+            </aside>
+          )}
 
           {/* Main Content */}
           <div className="flex-1 min-w-0 space-y-6">
-            {/* Mobile Ad - only show on screens >= 320px */}
-            <div className="lg:hidden" style={{ minWidth: '320px' }}>
-              <AdBannerHorizontal />
-            </div>
+            {/* Mobile Ad - Mobile only */}
+            {!isDesktop && (
+              <div style={{ minWidth: '320px' }}>
+                <AdBannerHorizontal />
+              </div>
+            )}
             
             <div className="animate-fadeInUp" style={{ animationDelay: '50ms' }}>
               <ModeToggle mode={mode} onModeChange={handleModeChange} />
@@ -105,12 +124,14 @@ export default function FileShareApp() {
             <AdBannerHorizontal />
           </div>
 
-          {/* Right Sidebar Ad */}
-          <aside className="hidden lg:flex lg:w-[320px] flex-shrink-0" style={{ minWidth: '320px' }}>
-            <div className="sticky top-4 w-full">
-              <AdBannerVertical />
-            </div>
-          </aside>
+          {/* Right Sidebar Ad - Desktop only */}
+          {isDesktop && (
+            <aside className="w-[320px] flex-shrink-0" style={{ minWidth: '320px' }}>
+              <div className="sticky top-4 w-full">
+                <AdBannerVertical />
+              </div>
+            </aside>
+          )}
         </div>
       </div>
 

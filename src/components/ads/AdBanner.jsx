@@ -1,79 +1,113 @@
 import { useEffect, useRef, memo, useState } from 'react';
 
-// Ad Unit - each instance gets unique key to prevent conflicts
+// Ad Unit with visibility detection
 let adCounter = 0;
 
 const AdUnit = memo(({ slot = "1650043805", format = "auto", width = "100%", height = "90px" }) => {
   const adRef = useRef(null);
   const [adId] = useState(() => `ad-${++adCounter}`);
-  const [status, setStatus] = useState('loading'); // loading, success, failed
+  const [status, setStatus] = useState('waiting'); // waiting, loading, success, failed
 
   useEffect(() => {
-    if (typeof window === 'undefined' || status !== 'loading') return;
+    if (typeof window === 'undefined') return;
 
-    let attempts = 0;
-    const maxAttempts = 15;
+    const adElement = adRef.current;
+    if (!adElement) return;
+
     let timeoutId = null;
+    let observerCleanup = null;
 
-    const tryInitAd = () => {
-      attempts++;
-      const adElement = adRef.current;
+    const initAd = () => {
+      if (status !== 'loading') return;
       
-      if (!adElement) {
-        if (attempts < maxAttempts) {
-          timeoutId = setTimeout(tryInitAd, 400);
-        }
-        return;
-      }
-
-      const rect = adElement.getBoundingClientRect();
-      const actualWidth = Math.floor(rect.width);
-
-      console.log(`[${adId}] Attempt ${attempts}: width=${actualWidth}px`);
-
-      // AdSense needs minimum 300px for most ad formats
-      if (actualWidth >= 300) {
-        try {
-          // Skip if already processed
-          if (adElement.dataset.adsbygoogleStatus === 'done') {
-            console.log(`[${adId}] Already initialized`);
-            setStatus('success');
-            return;
-          }
-          
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
-          console.log(`[${adId}] Initialized successfully at ${actualWidth}px`);
+      try {
+        if (adElement.dataset.adsbygoogleStatus === 'done') {
+          console.log(`[${adId}] Already done`);
           setStatus('success');
-        } catch (e) {
-          console.error(`[${adId}] Init error:`, e.message);
-          // Don't retry on actual AdSense errors - it means the ad loaded but failed
-          if (e.message?.includes('No slot size')) {
-            // This means AdSense couldn't find a suitable ad - not a width issue
-            setStatus('failed');
-          } else if (attempts < maxAttempts) {
-            timeoutId = setTimeout(tryInitAd, 600);
-          } else {
-            setStatus('failed');
-          }
+          return;
         }
-      } else if (attempts < maxAttempts) {
-        // Width too small, retry
-        timeoutId = setTimeout(tryInitAd, 400);
-      } else {
-        console.warn(`[${adId}] Failed: width never reached 300px (got ${actualWidth}px)`);
+        
+        const rect = adElement.getBoundingClientRect();
+        console.log(`[${adId}] Initializing at ${Math.floor(rect.width)}px`);
+        
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+        setStatus('success');
+      } catch (e) {
+        console.error(`[${adId}] Error:`, e.message);
         setStatus('failed');
       }
     };
 
-    // Start after DOM settles
-    timeoutId = setTimeout(tryInitAd, 500);
-    
+    // Use IntersectionObserver to detect when ad becomes visible
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio > 0) {
+            const rect = entry.boundingClientRect;
+            console.log(`[${adId}] Visible: ${Math.floor(rect.width)}x${Math.floor(rect.height)}`);
+            
+            if (rect.width >= 300 && status === 'waiting') {
+              setStatus('loading');
+              // Small delay to ensure DOM is ready
+              timeoutId = setTimeout(initAd, 100);
+            }
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(adElement);
+    observerCleanup = () => observer.disconnect();
+
+    // Fallback: check after delays if observer doesn't trigger
+    const fallbackCheck = () => {
+      if (status !== 'waiting') return;
+      
+      const rect = adElement.getBoundingClientRect();
+      const style = window.getComputedStyle(adElement);
+      const isVisible = style.display !== 'none' && style.visibility !== 'hidden';
+      
+      if (isVisible && rect.width >= 300) {
+        console.log(`[${adId}] Fallback init at ${Math.floor(rect.width)}px`);
+        setStatus('loading');
+        timeoutId = setTimeout(initAd, 100);
+      }
+    };
+
+    const fallbackTimers = [
+      setTimeout(fallbackCheck, 1000),
+      setTimeout(fallbackCheck, 2000),
+      setTimeout(fallbackCheck, 4000),
+    ];
+
     return () => {
+      if (observerCleanup) observerCleanup();
       if (timeoutId) clearTimeout(timeoutId);
+      fallbackTimers.forEach(clearTimeout);
     };
   }, [adId, status]);
 
-  // Show placeholder for failed ads
+  // Trigger init when status changes to loading
+  useEffect(() => {
+    if (status === 'loading') {
+      const adElement = adRef.current;
+      if (!adElement) return;
+      
+      try {
+        if (adElement.dataset.adsbygoogleStatus === 'done') {
+          setStatus('success');
+          return;
+        }
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+        setStatus('success');
+      } catch (e) {
+        console.error(`[${adId}] Init error:`, e.message);
+        setStatus('failed');
+      }
+    }
+  }, [status, adId]);
+
   if (status === 'failed') {
     return (
       <div 
@@ -95,7 +129,7 @@ const AdUnit = memo(({ slot = "1650043805", format = "auto", width = "100%", hei
         minWidth: '300px',
         height: height,
         minHeight: height,
-        backgroundColor: status === 'loading' ? '#f8fafc' : 'transparent',
+        backgroundColor: status === 'waiting' ? '#f8fafc' : 'transparent',
       }}
       data-ad-client="ca-pub-8746222528910149"
       data-ad-slot={slot}
@@ -107,7 +141,7 @@ const AdUnit = memo(({ slot = "1650043805", format = "auto", width = "100%", hei
 
 AdUnit.displayName = 'AdUnit';
 
-// Horizontal Ad - needs min 320px container
+// Horizontal Ad
 export const AdBannerHorizontal = memo(({ className = "" }) => (
   <div 
     className={`w-full my-4 ${className}`}
@@ -117,9 +151,7 @@ export const AdBannerHorizontal = memo(({ className = "" }) => (
       <div className="px-3 py-1.5 border-b border-slate-100 bg-slate-50 text-center">
         <span className="text-[10px] text-slate-400 uppercase tracking-wider">Sponsored</span>
       </div>
-      <div 
-        style={{ minHeight: '100px', padding: '8px', minWidth: '304px' }}
-      >
+      <div style={{ minHeight: '100px', padding: '8px', minWidth: '304px' }}>
         <AdUnit 
           slot="1650043805" 
           format="auto" 
@@ -133,7 +165,7 @@ export const AdBannerHorizontal = memo(({ className = "" }) => (
 
 AdBannerHorizontal.displayName = 'AdBannerHorizontal';
 
-// Vertical Sidebar Ad - fixed 300px width
+// Vertical Sidebar Ad
 export const AdBannerVertical = memo(({ className = "" }) => (
   <div 
     className={`${className}`} 
@@ -143,7 +175,7 @@ export const AdBannerVertical = memo(({ className = "" }) => (
       <div className="px-3 py-1.5 border-b border-slate-100 bg-slate-50 text-center">
         <span className="text-[10px] text-slate-400 uppercase tracking-wider">Advertisement</span>
       </div>
-      <div style={{ minHeight: '600px', padding: '0', width: '300px' }}>
+      <div style={{ minHeight: '600px', width: '300px' }}>
         <AdUnit 
           slot="1650043805" 
           format="vertical" 
@@ -157,7 +189,7 @@ export const AdBannerVertical = memo(({ className = "" }) => (
 
 AdBannerVertical.displayName = 'AdBannerVertical';
 
-// Square Ad - 300x250
+// Square Ad
 export const AdBannerSquare = memo(({ className = "" }) => (
   <div 
     className={`${className}`} 
@@ -167,7 +199,7 @@ export const AdBannerSquare = memo(({ className = "" }) => (
       <div className="px-3 py-1.5 border-b border-slate-100 bg-slate-50 text-center">
         <span className="text-[10px] text-slate-400 uppercase tracking-wider">Ad</span>
       </div>
-      <div style={{ minHeight: '250px', padding: '0', width: '300px' }}>
+      <div style={{ minHeight: '250px', width: '300px' }}>
         <AdUnit 
           slot="1650043805" 
           format="rectangle" 
