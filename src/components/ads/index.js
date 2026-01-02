@@ -2,5 +2,6 @@ export {
   AdBanner, 
   AdBannerHorizontal, 
   AdBannerSquare, 
-  AdBannerVertical 
+  AdBannerVertical,
+  AdBannerMobile 
 } from './AdBanner';

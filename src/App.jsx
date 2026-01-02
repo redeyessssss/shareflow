@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, memo } from 'react';
 import { Header, ModeToggle, FeatureCards } from './components/layout';
 import { Notification } from './components/ui';
-import { AdBannerHorizontal, AdBannerVertical } from './components/ads';
+import { AdBannerHorizontal, AdBannerVertical, AdBannerMobile } from './components/ads';
 import { useNotification } from './hooks/useNotification';
 import { Shield, Zap, Globe, UserCheck } from 'lucide-react';
 
@@ -98,8 +98,8 @@ export default function FileShareApp() {
           <div className="flex-1 min-w-0 space-y-6">
             {/* Mobile Ad - Mobile only */}
             {!isDesktop && (
-              <div style={{ minWidth: '320px' }}>
-                <AdBannerHorizontal />
+              <div className="flex justify-center">
+                <AdBannerMobile />
               </div>
             )}
             

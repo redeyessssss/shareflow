@@ -1,9 +1,16 @@
 import { useEffect, useRef, memo, useState } from 'react';
 
+// Ad slot IDs for different sizes
+const AD_SLOTS = {
+  sidebar: '8339575239',    // 300x600
+  horizontal: '5426810745', // 728x90
+  mobile: '4113729078',     // 320x100
+};
+
 // Ad Unit with single initialization
 let adCounter = 0;
 
-const AdUnit = memo(({ slot = "1650043805", format = "auto", width = "100%", height = "90px" }) => {
+const AdUnit = memo(({ slot, width, height, format = "auto" }) => {
   const adRef = useRef(null);
   const [adId] = useState(() => `ad-${++adCounter}`);
   const [initialized, setInitialized] = useState(false);
@@ -23,7 +30,7 @@ const AdUnit = memo(({ slot = "1650043805", format = "auto", width = "100%", hei
       
       const rect = adElement.getBoundingClientRect();
       const style = window.getComputedStyle(adElement);
-      const isVisible = style.display !== 'none' && style.visibility !== 'hidden' && rect.width >= 300;
+      const isVisible = style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0;
 
       if (!isVisible) return;
 
@@ -36,37 +43,27 @@ const AdUnit = memo(({ slot = "1650043805", format = "auto", width = "100%", hei
           return;
         }
         
-        console.log(`[${adId}] Initializing at ${Math.floor(rect.width)}x${Math.floor(rect.height)}`);
+        console.log(`[${adId}] Initializing ${width}x${height} at ${Math.floor(rect.width)}x${Math.floor(rect.height)}`);
         (window.adsbygoogle = window.adsbygoogle || []).push({});
         setInitialized(true);
         
-        // Check ad status after a delay
         setTimeout(() => {
           const status = adElement.dataset.adsbygoogleStatus;
           const filled = adElement.getAttribute('data-ad-status');
-          console.log(`[${adId}] Status: ${status}, Filled: ${filled || 'unknown'}`);
-          
-          if (status === 'done' && !filled) {
-            console.warn(`[${adId}] Ad loaded but not filled - AdSense may have no ads available`);
-          }
+          console.log(`[${adId}] Status: ${status}, Filled: ${filled || 'checking...'}`);
         }, 2000);
         
-        console.log(`[${adId}] Success`);
       } catch (e) {
         console.error(`[${adId}] Error:`, e.message);
-        initAttempted.current = false; // Allow retry on error
+        initAttempted.current = false;
       }
     };
 
-    // Use IntersectionObserver to detect when ad becomes visible
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting && entry.intersectionRatio > 0 && !initAttempted.current) {
-            const rect = entry.boundingClientRect;
-            if (rect.width >= 300) {
-              timeoutId = setTimeout(initAd, 100);
-            }
+            timeoutId = setTimeout(initAd, 100);
           }
         });
       },
@@ -76,11 +73,8 @@ const AdUnit = memo(({ slot = "1650043805", format = "auto", width = "100%", hei
     observer.observe(adElement);
     observerCleanup = () => observer.disconnect();
 
-    // Fallback: try once after delay if observer doesn't trigger
     const fallbackTimer = setTimeout(() => {
-      if (!initAttempted.current) {
-        initAd();
-      }
+      if (!initAttempted.current) initAd();
     }, 2000);
 
     return () => {
@@ -88,46 +82,38 @@ const AdUnit = memo(({ slot = "1650043805", format = "auto", width = "100%", hei
       if (timeoutId) clearTimeout(timeoutId);
       clearTimeout(fallbackTimer);
     };
-  }, [adId, initialized]);
+  }, [adId, initialized, width, height]);
 
   return (
     <ins
       ref={adRef}
       className="adsbygoogle"
       style={{
-        display: 'block',
-        width: width,
-        minWidth: '300px',
-        height: height,
-        minHeight: height,
+        display: 'inline-block',
+        width: `${width}px`,
+        height: `${height}px`,
         backgroundColor: initialized ? 'transparent' : '#f8fafc',
       }}
       data-ad-client="ca-pub-8746222528910149"
       data-ad-slot={slot}
-      data-ad-format={format}
-      data-full-width-responsive="true"
     />
   );
 });
 
 AdUnit.displayName = 'AdUnit';
 
-// Horizontal Ad
+// Horizontal Ad - 728x90
 export const AdBannerHorizontal = memo(({ className = "" }) => (
-  <div 
-    className={`w-full my-4 ${className}`}
-    style={{ minWidth: '320px' }}
-  >
+  <div className={`w-full my-4 ${className}`}>
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       <div className="px-3 py-1.5 border-b border-slate-100 bg-slate-50 text-center">
         <span className="text-[10px] text-slate-400 uppercase tracking-wider">Sponsored</span>
       </div>
-      <div style={{ minHeight: '100px', padding: '8px', minWidth: '304px' }}>
+      <div className="flex justify-center items-center p-2" style={{ minHeight: '94px' }}>
         <AdUnit 
-          slot="1650043805" 
-          format="auto" 
-          width="100%" 
-          height="90px" 
+          slot={AD_SLOTS.horizontal}
+          width={728}
+          height={90}
         />
       </div>
     </div>
@@ -136,22 +122,18 @@ export const AdBannerHorizontal = memo(({ className = "" }) => (
 
 AdBannerHorizontal.displayName = 'AdBannerHorizontal';
 
-// Vertical Sidebar Ad
+// Vertical Sidebar Ad - 300x600
 export const AdBannerVertical = memo(({ className = "" }) => (
-  <div 
-    className={`${className}`} 
-    style={{ width: '300px', minWidth: '300px', maxWidth: '300px' }}
-  >
+  <div className={`${className}`} style={{ width: '300px' }}>
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       <div className="px-3 py-1.5 border-b border-slate-100 bg-slate-50 text-center">
         <span className="text-[10px] text-slate-400 uppercase tracking-wider">Advertisement</span>
       </div>
-      <div style={{ minHeight: '600px', width: '300px' }}>
+      <div className="flex justify-center items-center" style={{ minHeight: '604px' }}>
         <AdUnit 
-          slot="1650043805" 
-          format="vertical" 
-          width="300px" 
-          height="600px" 
+          slot={AD_SLOTS.sidebar}
+          width={300}
+          height={600}
         />
       </div>
     </div>
@@ -160,22 +142,38 @@ export const AdBannerVertical = memo(({ className = "" }) => (
 
 AdBannerVertical.displayName = 'AdBannerVertical';
 
-// Square Ad
+// Mobile Ad - 320x100
+export const AdBannerMobile = memo(({ className = "" }) => (
+  <div className={`w-full my-4 ${className}`}>
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="px-3 py-1.5 border-b border-slate-100 bg-slate-50 text-center">
+        <span className="text-[10px] text-slate-400 uppercase tracking-wider">Sponsored</span>
+      </div>
+      <div className="flex justify-center items-center p-2" style={{ minHeight: '104px' }}>
+        <AdUnit 
+          slot={AD_SLOTS.mobile}
+          width={320}
+          height={100}
+        />
+      </div>
+    </div>
+  </div>
+));
+
+AdBannerMobile.displayName = 'AdBannerMobile';
+
+// Square Ad - 300x250 (using sidebar slot as fallback)
 export const AdBannerSquare = memo(({ className = "" }) => (
-  <div 
-    className={`${className}`} 
-    style={{ width: '300px', minWidth: '300px' }}
-  >
+  <div className={`${className}`} style={{ width: '300px' }}>
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       <div className="px-3 py-1.5 border-b border-slate-100 bg-slate-50 text-center">
         <span className="text-[10px] text-slate-400 uppercase tracking-wider">Ad</span>
       </div>
-      <div style={{ minHeight: '250px', width: '300px' }}>
+      <div className="flex justify-center items-center" style={{ minHeight: '254px' }}>
         <AdUnit 
-          slot="1650043805" 
-          format="rectangle" 
-          width="300px" 
-          height="250px" 
+          slot={AD_SLOTS.sidebar}
+          width={300}
+          height={250}
         />
       </div>
     </div>
