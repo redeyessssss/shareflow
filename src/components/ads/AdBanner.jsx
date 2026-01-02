@@ -39,6 +39,18 @@ const AdUnit = memo(({ slot = "1650043805", format = "auto", width = "100%", hei
         console.log(`[${adId}] Initializing at ${Math.floor(rect.width)}x${Math.floor(rect.height)}`);
         (window.adsbygoogle = window.adsbygoogle || []).push({});
         setInitialized(true);
+        
+        // Check ad status after a delay
+        setTimeout(() => {
+          const status = adElement.dataset.adsbygoogleStatus;
+          const filled = adElement.getAttribute('data-ad-status');
+          console.log(`[${adId}] Status: ${status}, Filled: ${filled || 'unknown'}`);
+          
+          if (status === 'done' && !filled) {
+            console.warn(`[${adId}] Ad loaded but not filled - AdSense may have no ads available`);
+          }
+        }, 2000);
+        
         console.log(`[${adId}] Success`);
       } catch (e) {
         console.error(`[${adId}] Error:`, e.message);
